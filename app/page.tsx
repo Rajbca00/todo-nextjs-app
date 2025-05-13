@@ -1,103 +1,116 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
+
+interface Todo {
+  id: string;
+  title: string;
+  completed: boolean;
+}
 
 export default function Home() {
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [newTodo, setNewTodo] = useState<string>("");
+
+  useEffect(() => {
+    // Fetch todos from local storage
+    const storedTodos = localStorage.getItem("todos");
+    if (storedTodos) {
+      setTodos(JSON.parse(storedTodos));
+    }
+  }, []);
+
+  const updateTodo = (id: string) => {
+    // Update the todo item
+    setTodos((prevTodos) => {
+      const updatedTodos = prevTodos.map((todo) => {
+        if (todo.id === id) {
+          return { ...todo, completed: !todo.completed };
+        }
+        return todo;
+      });
+      localStorage.setItem("todos", JSON.stringify(updatedTodos));
+      return updatedTodos;
+    });
+  };
+
+  const deleteTodo = (id: string) => {
+    // Delete the todo item
+    setTodos((prevTodos) => {
+      const updatedTodos = prevTodos.filter((todo) => todo.id !== id);
+      localStorage.setItem("todos", JSON.stringify(updatedTodos));
+      return updatedTodos;
+    }
+    );
+    // Optionally, you can also add a toast notification here
+    toast.success("Todo deleted successfully!");
+  }
+
+  const addTodo = () => {
+    const id = Math.random().toString(36).substring(2, 9);
+    const newTodoItem: Todo = { id, title: newTodo, completed: false };
+    setTodos((prevTodos) => [...prevTodos, newTodoItem]);
+    setNewTodo(""); // Clear the input field
+    localStorage.setItem("todos", JSON.stringify([...todos, newTodoItem]));
+    // Optionally, you can also add a toast notification here
+    toast.success("Todo added successfully!");
+  };
+
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+        <section className="flex flex-col items-center text-center">
+          <h1 className="text-3xl font-bold">Welome to My Todo App</h1>
+          <p className="text-sm text-gray-500 w-2/3 ">
+            This is a simple todo app built with Next.js, TypeScript, and
+            Tailwind CSS.
+          </p>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+          <fieldset className="fieldset">
+            <legend className="fieldset-legend mt-5 ml-2">
+              Write your todo
+            </legend>
+            <input
+              type="text"
+              className="input w-lg"
+              placeholder="Type here"
+              value={newTodo}
+              onChange={(e) => setNewTodo(e.target.value)}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
+          </fieldset>
+
+          <button className="btn btn-primary mt-5 w-lg" onClick={addTodo}>
+            Add Todo
+          </button>
+        </section>
+
+        <section className="">
+          <h2 className="text-2xl font-bold">My Todos</h2>
+          <ul className="list-disc list-inside mt-5">
+            {todos &&
+              todos.map((todo) => (
+                <li key={todo.id} className="flex items-center gap-2 w-lg">
+                  <div className="flex items-center flex-1">
+                    <input
+                      type="checkbox"
+                      checked={todo.completed}
+                      onChange={() => updateTodo(todo.id)}
+                      className="checkbox"
+                    />
+                    <span className="ml-2">{todo.title}</span>
+                  </div>
+                  <button
+                    className="btn btn-error btn-sm"
+                    type="button"
+                    aria-label="Delete todo"
+                    title="Delete todo"
+                    onClick={() => deleteTodo(todo.id)}>X</button>
+                </li>
+              ))}
+          </ul>
+        </section>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }

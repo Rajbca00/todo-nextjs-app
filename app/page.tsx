@@ -90,7 +90,7 @@ export default function Home() {
           <ul className="list-disc list-inside mt-5">
             {todos &&
               todos.map((todo) => (
-                <li key={todo.id} className="flex items-center gap-2 w-lg">
+                <li key={todo.id} className="flex items-center gap-2 w-lg mt-0.5">
                   <div className="flex items-center flex-1">
                     <input
                       type="checkbox"
